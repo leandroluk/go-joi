@@ -7,69 +7,63 @@ on:
     branches: [ master ]
 
 jobs:
-  # ---------- Linux (container golang:<version>) ----------
+  # ---------- Linux (usa container oficial do Go "1" = latest 1.x) ----------
   test-linux:
-    name: test (${{ matrix.go }}, ubuntu-latest)
+    name: test (linux, latest go1.x)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go: [ '1.x.x' ]
     container:
-      image: golang:${{ matrix.go }}
+      image: golang:1
     steps:
       - uses: actions/checkout@v4
+
       - name: Go env
         run: |
           go version
           go env
+
       - uses: ./.github/actions/go-ci
         with:
           os-tag: ubuntu
-          go-tag: ${{ matrix.go }}
+          go-tag: go1.x
           codecov: "true"
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
-  # ---------- macOS ----------
+  # ---------- macOS (setup-go: latest estável) ----------
   test-macos:
-    name: test (${{ matrix.go }}, macos-latest)
+    name: test (macos, latest stable)
     runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go: [ '1.x.x' ]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Go ${{ matrix.go }}
+
+      - name: Setup Go (stable)
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go }}
-          cache: true
+          go-version: stable        # sempre a última versão estável
+          check-latest: true        # força pegar o último patch
+
       - uses: ./.github/actions/go-ci
         with:
           os-tag: macos
-          go-tag: ${{ matrix.go }}
+          go-tag: stable
           codecov: "true"
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
-  # ---------- Windows ----------
+  # ---------- Windows (setup-go: latest estável) ----------
   test-windows:
-    name: test (${{ matrix.go }}, windows-latest)
+    name: test (windows, latest stable)
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go: [ '1.x.x' ]
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Go ${{ matrix.go }}
+
+      - name: Setup Go (stable)
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go }}
-          cache: true
+          go-version: stable
+          check-latest: true
+
       - uses: ./.github/actions/go-ci
         with:
           os-tag: windows
-          go-tag: ${{ matrix.go }}
+          go-tag: stable
           codecov: "true"
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
