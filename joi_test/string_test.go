@@ -59,6 +59,23 @@ func TestStringSchema_Max_NonStringWithNil(t *testing.T) {
 	assert.Nil(t, val)
 }
 
+func TestStringSchema_Length(t *testing.T) {
+	schema := joi.String().Length(3)
+
+	_, errs1 := schema.Validate("field", "abc")
+	assert.Empty(t, errs1)
+
+	_, errs2 := schema.Validate("field", "abcd")
+	assert.NotEmpty(t, errs2)
+}
+
+func TestStringSchema_Length_NonStringWithNil(t *testing.T) {
+	schema := joi.String().Length(3)
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
 func TestStringSchema_Regex(t *testing.T) {
 	schema := joi.String().Regex(regexp.MustCompile(`^[a-z]+$`))
 
@@ -77,6 +94,36 @@ func TestStringSchema_Regex_NonStringWithNil(t *testing.T) {
 	assert.Nil(t, val)
 }
 
+func TestStringSchema_Email_Valid(t *testing.T) {
+	schema := joi.String().Email()
+
+	_, errs := schema.Validate("field", "user@example.com")
+	assert.Empty(t, errs)
+}
+
+func TestStringSchema_Email_Invalid(t *testing.T) {
+	schema := joi.String().Email()
+
+	_, errs := schema.Validate("field", "not-an-email")
+	assert.NotEmpty(t, errs)
+}
+
+func TestStringSchema_Email_NonStringWithNil(t *testing.T) {
+	schema := joi.String().Email()
+
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
+func TestStringSchema_Email_EmptyString(t *testing.T) {
+	schema := joi.String().Email()
+
+	val, errs := schema.Validate("field", "")
+	assert.Empty(t, errs)
+	assert.Equal(t, "", val)
+}
+
 func TestStringSchema_Trim(t *testing.T) {
 	schema := joi.String().Trim()
 
@@ -92,8 +139,8 @@ func TestStringSchema_Trim_NonStringWithNil(t *testing.T) {
 	assert.Nil(t, val)
 }
 
-func TestStringSchema_Lowercase(t *testing.T) {
-	schema := joi.String().Lowercase()
+func TestStringSchema_Lower(t *testing.T) {
+	schema := joi.String().Lower()
 
 	val, errs1 := schema.Validate("field", "ABC")
 	assert.NotEmpty(t, errs1)
@@ -104,15 +151,15 @@ func TestStringSchema_Lowercase(t *testing.T) {
 	assert.Equal(t, "abc", val)
 }
 
-func TestStringSchema_Lowercase_NonStringWithNil(t *testing.T) {
-	schema := joi.String().Lowercase()
+func TestStringSchema_Lower_NonStringWithNil(t *testing.T) {
+	schema := joi.String().Lower()
 	val, errs := schema.Validate("field", nil)
 	assert.Empty(t, errs)
 	assert.Nil(t, val)
 }
 
-func TestStringSchema_Uppercase(t *testing.T) {
-	schema := joi.String().Uppercase()
+func TestStringSchema_Upper(t *testing.T) {
+	schema := joi.String().Upper()
 
 	val, errs1 := schema.Validate("field", "abc")
 	assert.NotEmpty(t, errs1)
@@ -123,8 +170,8 @@ func TestStringSchema_Uppercase(t *testing.T) {
 	assert.Equal(t, "ABC", val)
 }
 
-func TestStringSchema_Uppercase_NonStringWithNil(t *testing.T) {
-	schema := joi.String().Uppercase()
+func TestStringSchema_Upper_NonStringWithNil(t *testing.T) {
+	schema := joi.String().Upper()
 	val, errs := schema.Validate("field", nil)
 	assert.Empty(t, errs)
 	assert.Nil(t, val)

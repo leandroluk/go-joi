@@ -1,6 +1,7 @@
 package joi
 
 import (
+	"net/mail"
 	"regexp"
 	"strings"
 )
@@ -10,25 +11,27 @@ import (
 type StringMsg string
 
 var (
-	StringMsgBase   StringMsg = "string.base"
-	StringMsgMin    StringMsg = "string.min"
-	StringMsgMax    StringMsg = "string.max"
-	StringMsgRegex  StringMsg = "string.regex"
-	StringMsgLength StringMsg = "string.length"
-	StringMsgTrim   StringMsg = "string.trim"
-	StringMsgLower  StringMsg = "string.lowercase"
-	StringMsgUpper  StringMsg = "string.uppercase"
+	StringMsgBase   StringMsg = "string_base"
+	StringMsgMin    StringMsg = "string_min"
+	StringMsgMax    StringMsg = "string_max"
+	StringMsgLength StringMsg = "string_length"
+	StringMsgRegex  StringMsg = "string_regex"
+	StringMsgTrim   StringMsg = "string_trim"
+	StringMsgLower  StringMsg = "string_lower"
+	StringMsgUpper  StringMsg = "string_upper"
+	StringMsgEmail  StringMsg = "string.email"
 )
 
 var StringMsgMap = map[StringMsg]string{
 	StringMsgBase:   "{{#label}} must be a string",
 	StringMsgMin:    "{{#label}} length must be at least {{#limit}} characters long",
 	StringMsgMax:    "{{#label}} length must be less than or equal to {{#limit}} characters long",
-	StringMsgRegex:  "{{#label}} with value {{#value}} fails to match the required pattern",
 	StringMsgLength: "{{#label}} length must be {{#limit}} characters long",
+	StringMsgRegex:  "{{#label}} with value {{#value}} fails to match the required pattern",
 	StringMsgTrim:   "{{#label}} must be a trimmed string",
 	StringMsgLower:  "{{#label}} must be a lowercase string",
 	StringMsgUpper:  "{{#label}} must be an uppercase string",
+	StringMsgEmail:  "{{#label}} must be a valid email",
 }
 
 // --- structs ---
@@ -77,6 +80,25 @@ func (s *StringSchema) Max(limit int, msg ...string) *StringSchema {
 	return s
 }
 
+func (s *StringSchema) Length(limit int, msg ...string) *StringSchema {
+	s.rules = append(s.rules, Rule{
+		Name: string(StringMsgLength),
+		Msg:  PickSchemaMsg(StringMsgMap[StringMsgLength], msg...),
+		Args: map[string]any{"limit": limit},
+		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
+			str, ok := value.(string)
+			if !ok {
+				return value, nil
+			}
+			if len(str) != limit {
+				return value, &ValidationError{Path: path, Msg: r.Msg}
+			}
+			return value, nil
+		},
+	})
+	return s
+}
+
 func (s *StringSchema) Regex(re *regexp.Regexp, msg ...string) *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgRegex),
@@ -88,6 +110,29 @@ func (s *StringSchema) Regex(re *regexp.Regexp, msg ...string) *StringSchema {
 				return value, nil
 			}
 			if !re.MatchString(str) {
+				return value, &ValidationError{Path: path, Msg: r.Msg}
+			}
+			return value, nil
+		},
+	})
+	return s
+}
+
+func (s *StringSchema) Email(msg ...string) *StringSchema {
+	s.rules = append(s.rules, Rule{
+		Name: string(StringMsgEmail),
+		Msg:  PickSchemaMsg(StringMsgMap[StringMsgEmail], msg...),
+		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
+			str, ok := value.(string)
+			if !ok {
+				return value, nil
+			}
+			if str == "" {
+				// Deixa "required" para outra regra; email vazio passa aqui.
+				return value, nil
+			}
+			addr, err := mail.ParseAddress(str)
+			if err != nil || addr.Address != str {
 				return value, &ValidationError{Path: path, Msg: r.Msg}
 			}
 			return value, nil
@@ -111,7 +156,7 @@ func (s *StringSchema) Trim() *StringSchema {
 	return s
 }
 
-func (s *StringSchema) Lowercase() *StringSchema {
+func (s *StringSchema) Lower() *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgLower),
 		Msg:  StringMsgMap[StringMsgLower],
@@ -129,7 +174,7 @@ func (s *StringSchema) Lowercase() *StringSchema {
 	return s
 }
 
-func (s *StringSchema) Uppercase() *StringSchema {
+func (s *StringSchema) Upper() *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgUpper),
 		Msg:  StringMsgMap[StringMsgUpper],
