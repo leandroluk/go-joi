@@ -1,20 +1,30 @@
 GO          ?= go
 PKG         := ./...
 COVERPKG    := ./joi
-TMPDIR      := ./.tmp
+
+# use absolute path to avoid per-package cwd issues
+TMPDIR      := $(CURDIR)/.tmp
 COVERFILE   := $(TMPDIR)/coverage.out
 COVERHTML   := $(TMPDIR)/coverage.html
 
 # Cross-platform commands for creating/removing files
 ifeq ($(OS),Windows_NT)
-    MKDIR = if not exist $(TMPDIR) mkdir $(TMPDIR)
+    MKDIR = if not exist "$(TMPDIR)" mkdir "$(TMPDIR)"
     RMRF  = del /Q
 else
-    MKDIR = mkdir -p $(TMPDIR)
+    MKDIR = mkdir -p "$(TMPDIR)"
     RMRF  = rm -f
 endif
 
-.PHONY: test test.ci test.func test.html coverage.save fmt vet lint clean help
+.PHONY: test test.ci test.func test.html coverage.save fmt vet lint clean help deps build
+
+## Download deps (like go mod download)
+deps:
+	$(GO) mod download
+
+## Build all packages
+build:
+	$(GO) build $(PKG)
 
 ## Run all tests (no coverage)
 test:
@@ -23,20 +33,20 @@ test:
 ## Run tests with coverage (generate $(COVERFILE))
 test.ci:
 	$(MKDIR)
-	$(GO) test $(PKG) -coverpkg=$(COVERPKG) -coverprofile=$(COVERFILE) -covermode=atomic
+	$(GO) test $(PKG) -coverpkg=$(COVERPKG) -coverprofile="$(COVERFILE)" -covermode=atomic
 
 ## Open the coverage report in the browser (CROSS-PLATFORM)
 #  Note: does NOT generate a file, just opens directly.
 test.html: test.ci
-	$(GO) tool cover -html=$(COVERFILE)
+	$(GO) tool cover -html="$(COVERFILE)"
 
 ## Show coverage by function in the terminal (aggregate view)
 test.func: test.ci
-	$(GO) tool cover -func=$(COVERFILE)
+	$(GO) tool cover -func="$(COVERFILE)"
 
 ## Save the HTML coverage report to a file (does not open automatically)
 coverage.save: test.ci
-	$(GO) tool cover -html=$(COVERFILE) -o $(COVERHTML)
+	$(GO) tool cover -html="$(COVERFILE)" -o "$(COVERHTML)"
 	@echo "Report saved at: $(COVERHTML)"
 
 ## Formatters/Linters
@@ -50,11 +60,13 @@ lint: fmt vet
 
 ## Clean up
 clean:
-	$(RMRF) $(COVERFILE) $(COVERHTML)
+	$(RMRF) "$(COVERFILE)" "$(COVERHTML)"
 
 ## Help (simple and portable)
 help:
 	@echo "Targets:"
+	@echo "  make deps           - Download dependencies"
+	@echo "  make build          - Build all packages"
 	@echo "  make test           - Run tests"
 	@echo "  make test.ci        - Run tests with coverage (profile)"
 	@echo "  make test.html      - Open coverage report in browser (cross-platform)"
