@@ -46,22 +46,32 @@ runs:
       shell: pwsh
       run: go mod download
 
-    # -------- fmt-check --------
-    - name: fmt-check (auto-fix)
+    # -------- fmt-check (sem git; auto-fix + falha) --------
+    - name: fmt-check (auto-fix, bash)
       if: inputs.os-tag != 'windows'
       shell: bash
       run: |
-        gofmt -s -w .
-        git diff --exit-code || (echo "Unformatted changes written by CI. Run gofmt locally." && exit 1)
+        set -e
+        OUT="$(gofmt -l .)"
+        if [ -n "$OUT" ]; then
+          echo "Unformatted files:"
+          echo "$OUT"
+          echo "Running gofmt -s -w . to auto-fix..."
+          gofmt -s -w .
+          # Falha para exigir que o dev faça o fmt localmente e commite.
+          exit 1
+        fi
 
-    - name: fmt-check (auto-fix windows)
+    - name: fmt-check (auto-fix, windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
       run: |
-        gofmt -s -w .
-        git diff --exit-code
-        if ($LASTEXITCODE -ne 0) {
-          echo "Unformatted changes written by CI. Run gofmt locally."
+        $out = gofmt -l .
+        if ($out) {
+          echo "Unformatted files:"
+          echo $out
+          echo "Running gofmt -s -w . to auto-fix..."
+          gofmt -s -w .
           exit 1
         }
 
