@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  # ---------- Linux (usa container oficial do Go "1" = latest 1.x) ----------
+  # ---------- Linux (container oficial do Go "1" = latest 1.x) ----------
   test-linux:
     name: test (linux, latest go1.x)
     runs-on: ubuntu-latest
@@ -38,8 +38,8 @@ jobs:
       - name: Setup Go (stable)
         uses: actions/setup-go@v5
         with:
-          go-version: stable        # sempre a última versão estável
-          check-latest: true        # força pegar o último patch
+          go-version: stable
+          check-latest: true
 
       - uses: ./.github/actions/go-ci
         with:

@@ -20,7 +20,7 @@ inputs:
 runs:
   using: composite
   steps:
-    # -------- ensure cover tool in PATH (bash) --------
+    # -------- ensure cover tool in PATH --------
     - name: Ensure cover tool (bash)
       if: inputs.os-tag != 'windows'
       shell: bash
@@ -28,7 +28,6 @@ runs:
         go install golang.org/x/tools/cmd/cover@latest
         echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
-    # -------- ensure cover tool in PATH (pwsh) --------
     - name: Ensure cover tool (pwsh)
       if: inputs.os-tag == 'windows'
       shell: pwsh
@@ -94,18 +93,22 @@ runs:
       run: go build ./...
 
     # -------- tests + coverage --------
+    # Linux/macOS: usa Makefile (gera coverage.txt na raiz)
     - name: test with coverage (make)
       if: inputs.os-tag != 'windows'
       shell: bash
       run: make test.ci
 
+    # Windows: idem, mas sem make? Se você tem make no Windows, pode remover este bloco.
     - name: test with coverage (windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
       run: |
-        $tmp = "$(Get-Location)/.tmp"
-        New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-        go test ./... -coverpkg=./joi -coverprofile="$tmp/coverage.out" -covermode=atomic
+        if (Test-Path Makefile) {
+          make test.ci
+        } else {
+          go test ./... -coverpkg=./joi -coverprofile="coverage.txt" -covermode=atomic
+        }
 
     # -------- artifacts --------
     - name: Upload coverage artifact
@@ -113,14 +116,14 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: coverage-${{ inputs.os-tag }}-go${{ inputs.go-tag }}
-        path: ./.tmp/coverage.out
+        path: coverage.txt
 
     # -------- codecov --------
     - name: Upload to Codecov
       if: ${{ inputs.codecov == 'true' }}
       uses: codecov/codecov-action@v4
       with:
-        files: ./.tmp/coverage.out
+        files: coverage.txt
         flags: ${{ inputs.os-tag }}-go${{ inputs.go-tag }}
         fail_ci_if_error: true
         token: ${{ inputs.codecov_token }}
