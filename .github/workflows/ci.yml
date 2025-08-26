@@ -7,65 +7,66 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
+  # ---------- Linux (container golang:<version>) ----------
+  test-linux:
+    name: test (${{ matrix.go }}, ubuntu-latest)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.21', '1.22', '1.23', '1.24', '1.25' ]  # tags do Docker Hub
+    container:
+      image: golang:${{ matrix.go }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Go env
+        run: |
+          go version
+          go env
+      - uses: ./.github/actions/go-ci
+        with:
+          os-tag: ubuntu
+          go-tag: ${{ matrix.go }}
+          codecov: true
+
+  # ---------- macOS ----------
+  test-macos:
+    name: test (${{ matrix.go }}, macos-latest)
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
         go: [ '1.21.x', '1.22.x', '1.23.x', '1.24.x', '1.25.x' ]
-        os: [ ubuntu-latest, macos-latest ]
-    runs-on: ${{ matrix.os }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Setup Go ${{ matrix.go }}
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           cache: true
-
-      - name: Install cover tool
-        run: go install golang.org/x/tools/cmd/cover@latest
-
-      - name: Ensure cover tool available
-        run: |
-          go install golang.org/x/tools/cmd/cover@latest
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
-      - name: Download deps
-        run: go mod download
-
-      - name: fmt-check
-        run: |
-          set -e
-          OUT=$(gofmt -l .)
-          if [ -n "$OUT" ]; then
-            echo "Files not formatted:"
-            echo "$OUT"
-            exit 1
-          fi
-
-      - name: vet
-        run: go vet ./...
-
-      - name: build (compile all packages)
-        run: go build ./...
-
-      - name: test with coverage
-        run: make test.ci
-
-      - name: Upload coverage artifact
-        if: always()
-        uses: actions/upload-artifact@v4
+      - uses: ./.github/actions/go-ci
         with:
-          name: coverage-${{ matrix.os }}-go${{ matrix.go }}
-          path: ./.tmp/coverage.out
+          os-tag: macos
+          go-tag: ${{ matrix.go }}
+          codecov: true
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+  # ---------- Windows ----------
+  test-windows:
+    name: test (${{ matrix.go }}, windows-latest)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.21.x', '1.22.x', '1.23.x', '1.24.x', '1.25.x' ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v5
         with:
-          files: ./.tmp/coverage.out
-          flags: ${{ matrix.os }}-go${{ matrix.go }}
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} 
+          go-version: ${{ matrix.go }}
+          cache: true
+      - uses: ./.github/actions/go-ci
+        with:
+          os-tag: windows
+          go-tag: ${{ matrix.go }}
+          codecov: true
