@@ -1,6 +1,6 @@
 # go-joi
 
-<img align="right" width="180px" src="https://raw.githubusercontent.com/golang/go/master/doc/gopher/fiveyears.jpg">
+<img align="right" width="180px" src="https://raw.githubusercontent.com/swaggo/swag/master/assets/go-joi.png">
 
 [![Build Status](https://github.com/leandroluk/go-joi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/leandroluk/go-joi/actions)  
 [![Coverage Status](https://img.shields.io/codecov/c/github/leandroluk/go-joi/main.svg)](https://codecov.io/gh/leandroluk/go-joi)  
@@ -13,15 +13,20 @@ A schema description & validation library for Go, inspired by [hapi/joi](https:/
 ---
 
 ## Contents
-- [Getting started](#getting-started)
-- [Usage](#usage)
-- [Available Schemas](#available-schemas)
-- [Validation Rules](#validation-rules)
-- [Examples](#examples)
-- [Implementation Status](#implementation-status)
-- [About the Project](#about-the-project)
-- [Contributors](#contributors)
-- [License](#license)
+- [go-joi](#go-joi)
+  - [Contents](#contents)
+  - [Getting started](#getting-started)
+  - [Usage](#usage)
+  - [Available Schemas](#available-schemas)
+  - [Examples](#examples)
+    - [String Validation](#string-validation)
+    - [Number Validation](#number-validation)
+    - [Boolean Validation](#boolean-validation)
+    - [Object Validation](#object-validation)
+  - [Implementation Status](#implementation-status)
+  - [About the Project](#about-the-project)
+  - [Contributors](#contributors)
+  - [License](#license)
 
 ---
 
