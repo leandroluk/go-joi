@@ -93,12 +93,20 @@ func (s *ArraySchema) Length(limit int, msg ...string) *ArraySchema {
 	return s
 }
 
-func (s *ArraySchema) Validate(path string, value any) (any, []ValidationError) {
+func (s *ArraySchema) Validate(value any) (any, []ValidationError) {
+	return s.ValidateWithOpts(value, ValidateOptions{})
+}
+
+func (s *ArraySchema) ValidateWithOpts(value any, opts ValidateOptions) (any, []ValidationError) {
 	if value == nil && s.defaultValue != nil {
 		value = s.defaultValue.value
 	}
 
-	val, errs := RunValidation(s.rules, Coalesce(s.label, path, "value"), path, value)
+	if opts.Path != nil {
+		s.path = *opts.Path
+	}
+
+	val, errs := RunValidation(s.rules, Coalesce(s.label, s.path, "value"), s.path, value)
 
 	arr, ok := val.([]any)
 	if !ok {
@@ -108,8 +116,8 @@ func (s *ArraySchema) Validate(path string, value any) (any, []ValidationError) 
 	if s.itemsSchema != nil {
 		newArr := make([]any, len(arr))
 		for i, v := range arr {
-			itemPath := path + "[" + strconv.Itoa(i) + "]"
-			parsed, itemErrs := s.itemsSchema.Validate(itemPath, v)
+			itemPath := s.path + "[" + strconv.Itoa(i) + "]"
+			parsed, itemErrs := s.itemsSchema.ValidateWithOpts(v, ValidateOptions{Path: &itemPath})
 			if len(itemErrs) > 0 {
 				errs = append(errs, itemErrs...)
 			}

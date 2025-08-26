@@ -92,7 +92,16 @@ func (s *ObjectSchema) Length(limit int, msg ...string) *ObjectSchema {
 	return s
 }
 
-func (s *ObjectSchema) Validate(path string, value any) (any, []ValidationError) {
+func (s *ObjectSchema) Validate(value any) (any, []ValidationError) {
+	return s.ValidateWithOpts(value, ValidateOptions{})
+}
+
+func (s *ObjectSchema) ValidateWithOpts(value any, opts ValidateOptions) (any, []ValidationError) {
+	var path string
+	if opts.Path != nil {
+		path = *opts.Path
+	}
+
 	val, errs := RunValidation(s.rules, Coalesce(path, "value"), path, value)
 
 	if val == nil {
@@ -109,14 +118,17 @@ func (s *ObjectSchema) Validate(path string, value any) (any, []ValidationError)
 
 	for k, schema := range s.fields {
 		if v, exists := m[k]; exists {
+			// valida campo existente
 			childPath := path + "." + k
-			parsedVal, ce := schema.Validate(childPath, v)
+			parsedVal, ce := schema.ValidateWithOpts(v, ValidateOptions{Path: &childPath})
 			if len(ce) > 0 {
 				childErrs = append(childErrs, ce...)
 			}
 			parsed[k] = parsedVal
 		} else {
-			_, ce := schema.Validate(path+"."+k, nil)
+			// campo ausente → valida contra nil (pra Required() funcionar)
+			childPath := path + "." + k
+			_, ce := schema.ValidateWithOpts(nil, ValidateOptions{Path: &childPath})
 			if len(ce) > 0 {
 				childErrs = append(childErrs, ce...)
 			}

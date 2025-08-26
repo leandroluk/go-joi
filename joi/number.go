@@ -80,7 +80,7 @@ func (s *NumberSchema) Integer(msg ...string) *NumberSchema {
 			if num != float64(int64(num)) {
 				return value, &ValidationError{Path: path, Msg: r.Msg}
 			}
-			return value, nil
+			return int64(num), nil
 		},
 	})
 	return s

@@ -90,3 +90,7 @@ func ParseDate(value any) (time.Time, bool) {
 		return time.Time{}, false
 	}
 }
+
+func Ptr[T any](v T) *T {
+	return &v
+}

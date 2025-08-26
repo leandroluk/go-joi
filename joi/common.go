@@ -4,8 +4,13 @@ import "fmt"
 
 // --- schema ---
 
+type ValidateOptions struct {
+	Path *string
+}
+
 type Schema interface {
-	Validate(path string, value any) (any, []ValidationError)
+	Validate(value any) (any, []ValidationError)
+	ValidateWithOpts(value any, opts ValidateOptions) (any, []ValidationError)
 }
 
 // --- validation ---

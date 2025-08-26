@@ -27,6 +27,7 @@ type DefaultValue struct {
 }
 
 type AnySchema[T any] struct {
+	path         string
 	label        string
 	rules        []Rule
 	defaultValue *DefaultValue
@@ -117,11 +118,20 @@ func (s *AnySchema[T]) Valid(allowed []any, msg ...string) *AnySchema[T] {
 	return s
 }
 
-func (s *AnySchema[T]) Validate(path string, value any) (any, []ValidationError) {
+func (s *AnySchema[T]) Validate(value any) (any, []ValidationError) {
+	return s.ValidateWithOpts(value, ValidateOptions{})
+}
+
+func (s *AnySchema[T]) ValidateWithOpts(value any, opts ValidateOptions) (any, []ValidationError) {
 	if value == nil && s.defaultValue != nil {
 		value = s.defaultValue.value
 	}
-	return RunValidation(s.rules, Coalesce(s.label, path, "value"), path, value)
+
+	if opts.Path != nil {
+		s.path = *opts.Path
+	}
+
+	return RunValidation(s.rules, Coalesce(s.label, s.path, "value"), s.path, value)
 }
 
 // --- constructor ---
