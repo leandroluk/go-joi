@@ -47,26 +47,21 @@ runs:
       run: go mod download
 
     # -------- fmt-check --------
-    - name: fmt-check
+    - name: fmt-check (auto-fix)
       if: inputs.os-tag != 'windows'
       shell: bash
       run: |
-        set -e
-        OUT=$(gofmt -l .)
-        if [ -n "$OUT" ]; then
-          echo "Files not formatted:"
-          echo "$OUT"
-          exit 1
-        fi
+        gofmt -s -w .
+        git diff --exit-code || (echo "Unformatted changes written by CI. Run gofmt locally." && exit 1)
 
-    - name: fmt-check (windows)
+    - name: fmt-check (auto-fix windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
       run: |
-        $out = gofmt -l .
-        if ($out) {
-          echo "Files not formatted:"
-          echo $out
+        gofmt -s -w .
+        git diff --exit-code
+        if ($LASTEXITCODE -ne 0) {
+          echo "Unformatted changes written by CI. Run gofmt locally."
           exit 1
         }
 
@@ -93,13 +88,11 @@ runs:
       run: go build ./...
 
     # -------- tests + coverage --------
-    # Linux/macOS: usa Makefile (gera coverage.txt na raiz)
     - name: test with coverage (make)
       if: inputs.os-tag != 'windows'
       shell: bash
       run: make test.ci
 
-    # Windows: idem, mas sem make? Se você tem make no Windows, pode remover este bloco.
     - name: test with coverage (windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
@@ -112,7 +105,7 @@ runs:
 
     # -------- artifacts --------
     - name: Upload coverage artifact
-      if: always()
+      if: ${{ hashFiles('coverage.txt') != '' }}
       uses: actions/upload-artifact@v4
       with:
         name: coverage-${{ inputs.os-tag }}-go${{ inputs.go-tag }}
@@ -120,7 +113,7 @@ runs:
 
     # -------- codecov --------
     - name: Upload to Codecov
-      if: ${{ inputs.codecov == 'true' }}
+      if: ${{ inputs.codecov == 'true' && hashFiles('coverage.txt') != '' }}
       uses: codecov/codecov-action@v4
       with:
         files: coverage.txt
