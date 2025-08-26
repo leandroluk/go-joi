@@ -1,5 +1,3 @@
-// joi_test/number_test.go
-
 package joi_test
 
 import (
@@ -19,6 +17,13 @@ func TestNumberSchema_Base(t *testing.T) {
 	assert.NotEmpty(t, errs2)
 }
 
+func TestNumberSchema_Base_AllowsNil(t *testing.T) {
+	schema := joi.Number()
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
 func TestNumberSchema_Min(t *testing.T) {
 	schema := joi.Number().Min(5)
 
@@ -27,6 +32,13 @@ func TestNumberSchema_Min(t *testing.T) {
 
 	_, errs2 := schema.Validate("field", float64(3))
 	assert.NotEmpty(t, errs2)
+}
+
+func TestNumberSchema_Min_NonNumberInput_WithNil(t *testing.T) {
+	schema := joi.Number().Min(5)
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
 }
 
 func TestNumberSchema_Max(t *testing.T) {
@@ -39,6 +51,13 @@ func TestNumberSchema_Max(t *testing.T) {
 	assert.NotEmpty(t, errs2)
 }
 
+func TestNumberSchema_Max_NonNumberInput_WithNil(t *testing.T) {
+	schema := joi.Number().Max(5)
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
 func TestNumberSchema_Integer(t *testing.T) {
 	schema := joi.Number().Integer()
 
@@ -47,6 +66,13 @@ func TestNumberSchema_Integer(t *testing.T) {
 
 	_, errs2 := schema.Validate("field", float64(10.5))
 	assert.NotEmpty(t, errs2)
+}
+
+func TestNumberSchema_Integer_NonNumberInput_WithNil(t *testing.T) {
+	schema := joi.Number().Integer()
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
 }
 
 func TestNumberSchema_Positive(t *testing.T) {
@@ -59,6 +85,13 @@ func TestNumberSchema_Positive(t *testing.T) {
 	assert.NotEmpty(t, errs2)
 }
 
+func TestNumberSchema_Positive_NonNumberInput_WithNil(t *testing.T) {
+	schema := joi.Number().Positive()
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
 func TestNumberSchema_Negative(t *testing.T) {
 	schema := joi.Number().Negative()
 
@@ -67,4 +100,11 @@ func TestNumberSchema_Negative(t *testing.T) {
 
 	_, errs2 := schema.Validate("field", float64(3))
 	assert.NotEmpty(t, errs2)
+}
+
+func TestNumberSchema_Negative_NonNumberInput_WithNil(t *testing.T) {
+	schema := joi.Number().Negative()
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
 }

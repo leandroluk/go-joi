@@ -35,21 +35,21 @@ type AnySchema[T any] struct {
 
 // --- methods ---
 
-func (s *AnySchema[T]) Label(label string) T {
+func (s *AnySchema[T]) Label(label string) *AnySchema[T] {
 	s.label = label
-	return s.self
+	return s
 }
 
-func (s *AnySchema[T]) Default(value any) T {
+func (s *AnySchema[T]) Default(value any) *AnySchema[T] {
 	s.defaultValue = &DefaultValue{value: value}
-	return s.self
+	return s
 }
 
-func (s *AnySchema[T]) Custom(fn func(path string, value any) *ValidationError, msg ...string) T {
+func (s *AnySchema[T]) Custom(fn func(path string, value any) *ValidationError, msg ...string) *AnySchema[T] {
 	name := string(AnyMsgCustom)
 	s.rules = append(s.rules, Rule{
 		Name: name,
-		Msg:  pickMsg(AnyMsgMap[AnyMsgCustom], msg...),
+		Msg:  PickSchemaMsg(AnyMsgMap[AnyMsgCustom], msg...),
 		Args: map[string]any{"message": ""},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			if fn == nil {
@@ -61,67 +61,67 @@ func (s *AnySchema[T]) Custom(fn func(path string, value any) *ValidationError, 
 			return value, nil
 		},
 	})
-	return s.self
+	return s
 }
 
-func (s *AnySchema[T]) Required(msg ...string) T {
+func (s *AnySchema[T]) Required(msg ...string) *AnySchema[T] {
 	name := string(AnyMsgRequired)
 	s.rules = append(s.rules, Rule{
 		Name: name,
-		Msg:  pickMsg(AnyMsgMap[AnyMsgRequired], msg...),
+		Msg:  PickSchemaMsg(AnyMsgMap[AnyMsgRequired], msg...),
 		Args: map[string]any{},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
-			return value, whenNil(value, &ValidationError{Path: path, Msg: r.Msg})
+			return value, WhenNil(value, &ValidationError{Path: path, Msg: r.Msg})
 		},
 	})
-	return s.self
+	return s
 }
 
-func (s *AnySchema[T]) Invalid(disallowed []any, msg ...string) T {
+func (s *AnySchema[T]) Invalid(disallowed []any, msg ...string) *AnySchema[T] {
 	name := string(AnyMsgInvalid)
 	s.rules = append(s.rules, Rule{
 		Name: name,
-		Msg:  pickMsg(AnyMsgMap[AnyMsgInvalid], msg...),
+		Msg:  PickSchemaMsg(AnyMsgMap[AnyMsgInvalid], msg...),
 		Args: map[string]any{"invalid": disallowed},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			if value == nil {
 				return value, nil
 			}
 			list, _ := r.Args["invalid"].([]any)
-			if valueInList(value, list) {
+			if ValueInList(value, list) {
 				return value, &ValidationError{Path: path, Msg: r.Msg}
 			}
 			return value, nil
 		},
 	})
-	return s.self
+	return s
 }
 
-func (s *AnySchema[T]) Valid(allowed []any, msg ...string) T {
+func (s *AnySchema[T]) Valid(allowed []any, msg ...string) *AnySchema[T] {
 	name := string(AnyMsgValid)
 	s.rules = append(s.rules, Rule{
 		Name: name,
-		Msg:  pickMsg(AnyMsgMap[AnyMsgValid], msg...),
+		Msg:  PickSchemaMsg(AnyMsgMap[AnyMsgValid], msg...),
 		Args: map[string]any{"valid": allowed},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			if value == nil {
 				return value, nil
 			}
 			list, _ := r.Args["valid"].([]any)
-			if valueInList(value, list) {
+			if ValueInList(value, list) {
 				return value, nil
 			}
 			return value, &ValidationError{Path: path, Msg: r.Msg}
 		},
 	})
-	return s.self
+	return s
 }
 
 func (s *AnySchema[T]) Validate(path string, value any) (any, []ValidationError) {
 	if value == nil && s.defaultValue != nil {
 		value = s.defaultValue.value
 	}
-	return runValidation(s.rules, coalesce(s.label, path, "value"), path, value)
+	return RunValidation(s.rules, Coalesce(s.label, path, "value"), path, value)
 }
 
 // --- constructor ---

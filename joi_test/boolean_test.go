@@ -1,5 +1,3 @@
-// joi_test/boolean_test.go
-
 package joi_test
 
 import (
@@ -22,6 +20,14 @@ func TestBooleanSchema_Base(t *testing.T) {
 	assert.NotEmpty(t, errs3)
 }
 
+func TestBooleanSchema_Base_AllowsNil(t *testing.T) {
+	schema := joi.Boolean()
+
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Nil(t, val)
+}
+
 func TestBooleanSchema_True(t *testing.T) {
 	schema := joi.Boolean().True()
 
@@ -32,6 +38,14 @@ func TestBooleanSchema_True(t *testing.T) {
 	assert.NotEmpty(t, errs2)
 }
 
+func TestBooleanSchema_True_NonBoolInput(t *testing.T) {
+	schema := joi.Boolean().True()
+
+	val, errs := schema.Validate("field", "not-bool")
+	assert.NotEmpty(t, errs)
+	assert.Equal(t, "not-bool", val)
+}
+
 func TestBooleanSchema_False(t *testing.T) {
 	schema := joi.Boolean().False()
 
@@ -40,6 +54,14 @@ func TestBooleanSchema_False(t *testing.T) {
 
 	_, errs2 := schema.Validate("field", true)
 	assert.NotEmpty(t, errs2)
+}
+
+func TestBooleanSchema_False_NonBoolInput(t *testing.T) {
+	schema := joi.Boolean().False()
+
+	val, errs := schema.Validate("field", 123)
+	assert.NotEmpty(t, errs)
+	assert.Equal(t, 123, val)
 }
 
 func TestBooleanSchema_Truthy(t *testing.T) {

@@ -33,7 +33,7 @@ type NumberSchema struct {
 func (s *NumberSchema) Min(limit float64, msg ...string) *NumberSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(NumberMsgMin),
-		Msg:  pickMsg(NumberMsgMap[NumberMsgMin], msg...),
+		Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgMin], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			num, ok := value.(float64)
@@ -52,7 +52,7 @@ func (s *NumberSchema) Min(limit float64, msg ...string) *NumberSchema {
 func (s *NumberSchema) Max(limit float64, msg ...string) *NumberSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(NumberMsgMax),
-		Msg:  pickMsg(NumberMsgMap[NumberMsgMax], msg...),
+		Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgMax], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			num, ok := value.(float64)
@@ -71,7 +71,7 @@ func (s *NumberSchema) Max(limit float64, msg ...string) *NumberSchema {
 func (s *NumberSchema) Integer(msg ...string) *NumberSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(NumberMsgInteger),
-		Msg:  pickMsg(NumberMsgMap[NumberMsgInteger], msg...),
+		Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgInteger], msg...),
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			num, ok := value.(float64)
 			if !ok {
@@ -89,7 +89,7 @@ func (s *NumberSchema) Integer(msg ...string) *NumberSchema {
 func (s *NumberSchema) Positive(msg ...string) *NumberSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(NumberMsgPositive),
-		Msg:  pickMsg(NumberMsgMap[NumberMsgPositive], msg...),
+		Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgPositive], msg...),
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			num, ok := value.(float64)
 			if !ok {
@@ -107,7 +107,7 @@ func (s *NumberSchema) Positive(msg ...string) *NumberSchema {
 func (s *NumberSchema) Negative(msg ...string) *NumberSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(NumberMsgNegative),
-		Msg:  pickMsg(NumberMsgMap[NumberMsgNegative], msg...),
+		Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgNegative], msg...),
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			num, ok := value.(float64)
 			if !ok {
@@ -131,7 +131,7 @@ func Number(msg ...string) *NumberSchema {
 		label: "value",
 		rules: []Rule{{
 			Name: string(NumberMsgBase),
-			Msg:  pickMsg(NumberMsgMap[NumberMsgBase], msg...),
+			Msg:  PickSchemaMsg(NumberMsgMap[NumberMsgBase], msg...),
 			Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 				if value == nil {
 					return value, nil

@@ -42,7 +42,7 @@ type StringSchema struct {
 func (s *StringSchema) Min(limit int, msg ...string) *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgMin),
-		Msg:  pickMsg(StringMsgMap[StringMsgMin], msg...),
+		Msg:  PickSchemaMsg(StringMsgMap[StringMsgMin], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			str, ok := value.(string)
@@ -61,7 +61,7 @@ func (s *StringSchema) Min(limit int, msg ...string) *StringSchema {
 func (s *StringSchema) Max(limit int, msg ...string) *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgMax),
-		Msg:  pickMsg(StringMsgMap[StringMsgMax], msg...),
+		Msg:  PickSchemaMsg(StringMsgMap[StringMsgMax], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			str, ok := value.(string)
@@ -80,7 +80,7 @@ func (s *StringSchema) Max(limit int, msg ...string) *StringSchema {
 func (s *StringSchema) Regex(re *regexp.Regexp, msg ...string) *StringSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(StringMsgRegex),
-		Msg:  pickMsg(StringMsgMap[StringMsgRegex], msg...),
+		Msg:  PickSchemaMsg(StringMsgMap[StringMsgRegex], msg...),
 		Args: map[string]any{"pattern": re.String()},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			str, ok := value.(string)
@@ -156,7 +156,7 @@ func String(msg ...string) *StringSchema {
 		label: "value",
 		rules: []Rule{{
 			Name: string(StringMsgBase),
-			Msg:  pickMsg(StringMsgMap[StringMsgBase], msg...),
+			Msg:  PickSchemaMsg(StringMsgMap[StringMsgBase], msg...),
 			Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 				if value == nil {
 					return value, nil

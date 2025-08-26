@@ -39,7 +39,7 @@ func (s *ArraySchema) Items(schema Schema) *ArraySchema {
 func (s *ArraySchema) Min(limit int, msg ...string) *ArraySchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ArrayMsgMin),
-		Msg:  pickMsg(ArrayMsgMap[ArrayMsgMin], msg...),
+		Msg:  PickSchemaMsg(ArrayMsgMap[ArrayMsgMin], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			arr, ok := value.([]any)
@@ -58,7 +58,7 @@ func (s *ArraySchema) Min(limit int, msg ...string) *ArraySchema {
 func (s *ArraySchema) Max(limit int, msg ...string) *ArraySchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ArrayMsgMax),
-		Msg:  pickMsg(ArrayMsgMap[ArrayMsgMax], msg...),
+		Msg:  PickSchemaMsg(ArrayMsgMap[ArrayMsgMax], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			arr, ok := value.([]any)
@@ -77,7 +77,7 @@ func (s *ArraySchema) Max(limit int, msg ...string) *ArraySchema {
 func (s *ArraySchema) Length(limit int, msg ...string) *ArraySchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ArrayMsgLength),
-		Msg:  pickMsg(ArrayMsgMap[ArrayMsgLength], msg...),
+		Msg:  PickSchemaMsg(ArrayMsgMap[ArrayMsgLength], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			arr, ok := value.([]any)
@@ -98,7 +98,7 @@ func (s *ArraySchema) Validate(path string, value any) (any, []ValidationError) 
 		value = s.defaultValue.value
 	}
 
-	val, errs := runValidation(s.rules, coalesce(s.label, path, "value"), path, value)
+	val, errs := RunValidation(s.rules, Coalesce(s.label, path, "value"), path, value)
 
 	arr, ok := val.([]any)
 	if !ok {
@@ -126,7 +126,7 @@ func (s *ArraySchema) Validate(path string, value any) (any, []ValidationError) 
 func Array(msg ...string) *ArraySchema {
 	base := Rule{
 		Name: string(ArrayMsgBase),
-		Msg:  pickMsg(ArrayMsgMap[ArrayMsgBase], msg...),
+		Msg:  PickSchemaMsg(ArrayMsgMap[ArrayMsgBase], msg...),
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			if value == nil {
 				return value, nil

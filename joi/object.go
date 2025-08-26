@@ -38,7 +38,7 @@ func (s *ObjectSchema) Unknown(allow bool) *ObjectSchema {
 func (s *ObjectSchema) Min(limit int, msg ...string) *ObjectSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ObjectMsgMin),
-		Msg:  pickMsg(ObjectMsgMap[ObjectMsgMin], msg...),
+		Msg:  PickSchemaMsg(ObjectMsgMap[ObjectMsgMin], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			m, ok := value.(map[string]any)
@@ -57,7 +57,7 @@ func (s *ObjectSchema) Min(limit int, msg ...string) *ObjectSchema {
 func (s *ObjectSchema) Max(limit int, msg ...string) *ObjectSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ObjectMsgMax),
-		Msg:  pickMsg(ObjectMsgMap[ObjectMsgMax], msg...),
+		Msg:  PickSchemaMsg(ObjectMsgMap[ObjectMsgMax], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			m, ok := value.(map[string]any)
@@ -76,7 +76,7 @@ func (s *ObjectSchema) Max(limit int, msg ...string) *ObjectSchema {
 func (s *ObjectSchema) Length(limit int, msg ...string) *ObjectSchema {
 	s.rules = append(s.rules, Rule{
 		Name: string(ObjectMsgLength),
-		Msg:  pickMsg(ObjectMsgMap[ObjectMsgLength], msg...),
+		Msg:  PickSchemaMsg(ObjectMsgMap[ObjectMsgLength], msg...),
 		Args: map[string]any{"limit": limit},
 		Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 			m, ok := value.(map[string]any)
@@ -92,40 +92,33 @@ func (s *ObjectSchema) Length(limit int, msg ...string) *ObjectSchema {
 	return s
 }
 
-// --- validation ---
-
 func (s *ObjectSchema) Validate(path string, value any) (any, []ValidationError) {
-	if value == nil {
-		return nil, nil
+	val, errs := RunValidation(s.rules, Coalesce(path, "value"), path, value)
+
+	if val == nil {
+		return nil, errs
 	}
-	m, ok := value.(map[string]any)
+
+	m, ok := val.(map[string]any)
 	if !ok {
-		return value, []ValidationError{{Path: path, Msg: ObjectMsgMap[ObjectMsgBase]}}
+		return val, errs
 	}
 
-	var errs []ValidationError
+	var childErrs []ValidationError
 	parsed := make(map[string]any)
-
-	val, valErrs := runValidation(s.rules, coalesce(path, "value"), path, value)
-	if len(valErrs) > 0 {
-		errs = append(errs, valErrs...)
-	}
-	if obj, ok := val.(map[string]any); ok {
-		m = obj
-	}
 
 	for k, schema := range s.fields {
 		if v, exists := m[k]; exists {
 			childPath := path + "." + k
-			parsedVal, childErrs := schema.Validate(childPath, v)
-			if len(childErrs) > 0 {
-				errs = append(errs, childErrs...)
+			parsedVal, ce := schema.Validate(childPath, v)
+			if len(ce) > 0 {
+				childErrs = append(childErrs, ce...)
 			}
 			parsed[k] = parsedVal
 		} else {
-			_, childErrs := schema.Validate(path+"."+k, nil)
-			if len(childErrs) > 0 {
-				errs = append(errs, childErrs...)
+			_, ce := schema.Validate(path+"."+k, nil)
+			if len(ce) > 0 {
+				childErrs = append(childErrs, ce...)
 			}
 		}
 	}
@@ -133,9 +126,9 @@ func (s *ObjectSchema) Validate(path string, value any) (any, []ValidationError)
 	if !s.unknown {
 		for k := range m {
 			if _, ok := s.fields[k]; !ok {
-				errs = append(errs, ValidationError{
+				childErrs = append(childErrs, ValidationError{
 					Path: path + "." + k,
-					Msg:  renderTemplate(ObjectMsgMap[ObjectMsgUnknown], map[string]any{"label": path, "key": k}),
+					Msg:  RenderTemplate(ObjectMsgMap[ObjectMsgUnknown], map[string]any{"label": path, "key": k}),
 				})
 			}
 		}
@@ -147,6 +140,9 @@ func (s *ObjectSchema) Validate(path string, value any) (any, []ValidationError)
 		}
 	}
 
+	if len(childErrs) > 0 {
+		errs = append(errs, childErrs...)
+	}
 	return parsed, errs
 }
 
@@ -159,7 +155,7 @@ func Object(fields map[string]Schema, msg ...string) *ObjectSchema {
 		label: "value",
 		rules: []Rule{{
 			Name: string(ObjectMsgBase),
-			Msg:  pickMsg(ObjectMsgMap[ObjectMsgBase], msg...),
+			Msg:  PickSchemaMsg(ObjectMsgMap[ObjectMsgBase], msg...),
 			Fn: func(r Rule, path string, value any) (any, *ValidationError) {
 				if value == nil {
 					return value, nil

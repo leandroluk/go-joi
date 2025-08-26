@@ -61,3 +61,35 @@ func TestAnySchema_Custom(t *testing.T) {
 	_, errs2 := schema.Validate("field", "good")
 	assert.Empty(t, errs2)
 }
+
+func TestAnySchema_Label(t *testing.T) {
+	schema := joi.Any[joi.Schema]().Label("myField").Required()
+	_, errs := schema.Validate("", nil)
+	assert.NotEmpty(t, errs)
+	assert.Contains(t, errs[0].String(), "myField")
+}
+
+func TestAnySchema_Default(t *testing.T) {
+	schema := joi.Any[joi.Schema]().Default("x")
+	val, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs)
+	assert.Equal(t, "x", val)
+}
+
+func TestAnySchema_CustomNil(t *testing.T) {
+	schema := joi.Any[joi.Schema]().Custom(nil)
+	_, errs := schema.Validate("field", "anything")
+	assert.Empty(t, errs)
+}
+
+func TestAnySchema_InvalidNilValue(t *testing.T) {
+	schema := joi.Any[joi.Schema]().Invalid([]any{"bad"})
+	_, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs) // covers nil branch
+}
+
+func TestAnySchema_ValidNilValue(t *testing.T) {
+	schema := joi.Any[joi.Schema]().Valid([]any{"ok"})
+	_, errs := schema.Validate("field", nil)
+	assert.Empty(t, errs) // covers nil branch
+}
