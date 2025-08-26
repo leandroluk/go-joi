@@ -25,14 +25,15 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
 
-      # Garante que a ferramenta "cover" está disponível (fix para o erro de covdata)
       - name: Install cover tool
+        run: go install golang.org/x/tools/cmd/cover@latest
+
+      - name: Ensure cover tool available
         run: go install golang.org/x/tools/cmd/cover@latest
 
       - name: Download deps
         run: go mod download
 
-      # fmt-check simples: falha se houver arquivos que o gofmt reformataria
       - name: fmt-check
         run: |
           set -e
@@ -49,7 +50,6 @@ jobs:
       - name: build (compile all packages)
         run: go build ./...
 
-      # Usa o Makefile para gerar cobertura com -coverpkg=./joi
       - name: test with coverage
         run: make test.ci
 
@@ -58,12 +58,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}-go${{ matrix.go }}
-          path: ./.tmp/coverage.txt
+          path: ./.tmp/coverage.out
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./.tmp/coverage.txt
+          files: ./.tmp/coverage.out
           flags: ${{ matrix.os }}-go${{ matrix.go }}
           fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }} # 
+          token: ${{ secrets.CODECOV_TOKEN }} 
