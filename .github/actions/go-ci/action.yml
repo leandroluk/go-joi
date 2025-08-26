@@ -46,32 +46,27 @@ runs:
       shell: pwsh
       run: go mod download
 
-    # -------- fmt-check (sem git; auto-fix + falha) --------
-    - name: fmt-check (auto-fix, bash)
+    # -------- fmt-check (sem git) --------
+    - name: fmt-check
       if: inputs.os-tag != 'windows'
       shell: bash
       run: |
         set -e
         OUT="$(gofmt -l .)"
         if [ -n "$OUT" ]; then
-          echo "Unformatted files:"
+          echo "Files not formatted:"
           echo "$OUT"
-          echo "Running gofmt -s -w . to auto-fix..."
-          gofmt -s -w .
-          # Falha para exigir que o dev faça o fmt localmente e commite.
           exit 1
         fi
 
-    - name: fmt-check (auto-fix, windows)
+    - name: fmt-check (windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
       run: |
         $out = gofmt -l .
         if ($out) {
-          echo "Unformatted files:"
+          echo "Files not formatted:"
           echo $out
-          echo "Running gofmt -s -w . to auto-fix..."
-          gofmt -s -w .
           exit 1
         }
 
@@ -97,19 +92,27 @@ runs:
       shell: pwsh
       run: go build ./...
 
-    # -------- tests + coverage --------
-    - name: test with coverage (make)
+    # -------- tests + coverage (com fallback se não houver make) --------
+    - name: test with coverage (bash; try make, else go test)
       if: inputs.os-tag != 'windows'
       shell: bash
-      run: make test.ci
+      run: |
+        if command -v make >/dev/null 2>&1 && [ -f Makefile ]; then
+          make test.ci
+        else
+          echo "No make detected; running go test fallback"
+          go test ./... -coverpkg=./joi -coverprofile="coverage.txt" -covermode=atomic
+        fi
 
-    - name: test with coverage (windows)
+    - name: test with coverage (windows; try make, else go test)
       if: inputs.os-tag == 'windows'
       shell: pwsh
       run: |
-        if (Test-Path Makefile) {
+        $hasMake = (Get-Command make -ErrorAction SilentlyContinue) -ne $null
+        if ($hasMake -and (Test-Path Makefile)) {
           make test.ci
         } else {
+          echo "No make detected; running go test fallback"
           go test ./... -coverpkg=./joi -coverprofile="coverage.txt" -covermode=atomic
         }
 
