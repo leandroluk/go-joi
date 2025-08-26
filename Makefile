@@ -3,18 +3,8 @@ PKG         := ./...
 COVERPKG    := ./joi
 
 # use absolute path to avoid per-package cwd issues
-TMPDIR      := $(CURDIR)/.tmp
-COVERFILE   := $(TMPDIR)/coverage.txt
-COVERHTML   := $(TMPDIR)/coverage.html
-
-# Cross-platform commands for creating/removing files
-ifeq ($(OS),Windows_NT)
-    MKDIR = if not exist "$(TMPDIR)" mkdir "$(TMPDIR)"
-    RMRF  = del /Q
-else
-    MKDIR = mkdir -p "$(TMPDIR)"
-    RMRF  = rm -f
-endif
+COVERFILE   := coverage.txt
+COVERHTML   := coverage.html
 
 .PHONY: test test.ci test.func test.html coverage.save fmt vet lint clean help deps build
 
