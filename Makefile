@@ -4,7 +4,7 @@ COVERPKG    := ./joi
 
 # use absolute path to avoid per-package cwd issues
 TMPDIR      := $(CURDIR)/.tmp
-COVERFILE   := $(TMPDIR)/coverage.out
+COVERFILE   := $(TMPDIR)/coverage.txt
 COVERHTML   := $(TMPDIR)/coverage.html
 
 # Cross-platform commands for creating/removing files
