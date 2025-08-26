@@ -1,5 +1,6 @@
 name: go-ci
 description: Common Go CI steps (fmt, vet, build, coverage, artifacts, codecov)
+
 inputs:
   os-tag:
     description: OS label for flags/artifact naming (ubuntu|macos|windows)
@@ -11,6 +12,10 @@ inputs:
     description: Upload to Codecov (true/false)
     required: false
     default: "false"
+  codecov_token:
+    description: Codecov token (pass from workflow secrets if needed)
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -33,13 +38,13 @@ runs:
 
     # -------- deps --------
     - name: Download deps
-      shell: bash
       if: inputs.os-tag != 'windows'
+      shell: bash
       run: go mod download
 
     - name: Download deps (windows)
-      shell: pwsh
       if: inputs.os-tag == 'windows'
+      shell: pwsh
       run: go mod download
 
     # -------- fmt-check --------
@@ -89,13 +94,11 @@ runs:
       run: go build ./...
 
     # -------- tests + coverage --------
-    # Linux/macOS: usa Makefile (make está disponível)
     - name: test with coverage (make)
       if: inputs.os-tag != 'windows'
       shell: bash
       run: make test.ci
 
-    # Windows: não assume make; roda go test direto e escreve no mesmo path ./.tmp/coverage.out
     - name: test with coverage (windows)
       if: inputs.os-tag == 'windows'
       shell: pwsh
@@ -120,4 +123,4 @@ runs:
         files: ./.tmp/coverage.out
         flags: ${{ inputs.os-tag }}-go${{ inputs.go-tag }}
         fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+        token: ${{ inputs.codecov_token }}

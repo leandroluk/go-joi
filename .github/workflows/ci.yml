@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: [ '1.21', '1.22', '1.23', '1.24', '1.25' ]  # tags do Docker Hub
+        go: [ '1.21', '1.22', '1.23', '1.24', '1.25' ]
     container:
       image: golang:${{ matrix.go }}
     steps:
@@ -27,7 +27,8 @@ jobs:
         with:
           os-tag: ubuntu
           go-tag: ${{ matrix.go }}
-          codecov: true
+          codecov: "true"
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   # ---------- macOS ----------
   test-macos:
@@ -48,7 +49,8 @@ jobs:
         with:
           os-tag: macos
           go-tag: ${{ matrix.go }}
-          codecov: true
+          codecov: "true"
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   # ---------- Windows ----------
   test-windows:
@@ -69,4 +71,5 @@ jobs:
         with:
           os-tag: windows
           go-tag: ${{ matrix.go }}
-          codecov: true
+          codecov: "true"
+          codecov_token: ${{ secrets.CODECOV_TOKEN }}
