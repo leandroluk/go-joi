@@ -7,9 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  # ---------- Linux (container oficial do Go "1" = latest 1.x) ----------
   test-linux:
-    name: test (linux, latest go1.x)
+    name: test (linux, latest stable)
     runs-on: ubuntu-latest
     container:
       image: golang:1
@@ -28,7 +27,6 @@ jobs:
           codecov: "true"
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
-  # ---------- macOS (setup-go: latest estável) ----------
   test-macos:
     name: test (macos, latest stable)
     runs-on: macos-latest
@@ -48,7 +46,6 @@ jobs:
           codecov: "true"
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
-  # ---------- Windows (setup-go: latest estável) ----------
   test-windows:
     name: test (windows, latest stable)
     runs-on: windows-latest
@@ -60,6 +57,16 @@ jobs:
         with:
           go-version: stable
           check-latest: true
+
+      - name: fmt (auto-fix) + verify (windows)
+        shell: pwsh
+        run: |
+          gofmt -s -w .
+          git diff --exit-code
+          if ($LASTEXITCODE -ne 0) {
+            echo "Unformatted changes written by CI. Please run gofmt locally."
+            exit 1
+          }
 
       - uses: ./.github/actions/go-ci
         with:
