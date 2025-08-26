@@ -1,4 +1,4 @@
-name: build
+name: ci
 
 on:
   push:
@@ -9,23 +9,58 @@ on:
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         go: [ '1.21.x', '1.22.x', '1.23.x', '1.24.x', '1.25.x' ]
-        platform: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.platform }}
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Go
-        uses: actions/setup-go@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go ${{ matrix.go }}
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
-      - name: deps
-        run:  make deps
-      - name: static program analysis
-        run: make fmt-check vet
-      - name: build
-        run: make build
-      - name: test
-        run: make test
-      - name: coverage
-        run: bash <(curl -s https://codecov.io/bash)
+          cache: true
+
+      - name: Download deps
+        run: go mod download
+
+      # fmt-check simples: falha se houver arquivos que o gofmt reformataria
+      - name: fmt-check
+        run: |
+          set -e
+          OUT=$(gofmt -l .)
+          if [ -n "$OUT" ]; then
+            echo "Files not formatted:"
+            echo "$OUT"
+            exit 1
+          fi
+
+      - name: vet
+        run: go vet ./...
+
+      - name: build (compile all packages)
+        run: go build ./...
+
+      # Usa teu Makefile para gerar cobertura com -coverpkg=./joi
+      - name: test with coverage
+        run: make test.ci
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-go${{ matrix.go }}
+          path: ./.tmp/coverage.out
+
+      # Envia para o Codecov usando a action oficial (recomendado)
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./.tmp/coverage.out
+          flags: ${{ matrix.os }}-go${{ matrix.go }}
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }} # configure no repo
