@@ -1,6 +1,6 @@
 # go-joi
 
-<img align="right" width="180px" src="https://raw.githubusercontent.com/swaggo/swag/master/assets/go-joi.png">
+<img align="right" width="180px" src="https://raw.githubusercontent.com/leandroluk/go-joi/refs/heads/master/assets/go-joi.png">
 
 [![Build Status](https://github.com/leandroluk/go-joi/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/leandroluk/go-joi/actions)  
 [![Coverage Status](https://img.shields.io/codecov/c/github/leandroluk/go-joi/main.svg)](https://codecov.io/gh/leandroluk/go-joi)  
