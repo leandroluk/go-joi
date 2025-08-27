@@ -26,6 +26,8 @@ type BooleanSchema struct {
 	*AnySchema[*BooleanSchema]
 }
 
+var _ Schema = (*BooleanSchema)(nil)
+
 // --- methods ---
 
 func (s *BooleanSchema) True(msg ...string) *BooleanSchema {

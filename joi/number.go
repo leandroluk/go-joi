@@ -28,6 +28,8 @@ type NumberSchema struct {
 	*AnySchema[*NumberSchema]
 }
 
+var _ Schema = (*NumberSchema)(nil)
+
 // --- methods ---
 
 func (s *NumberSchema) Min(limit float64, msg ...string) *NumberSchema {

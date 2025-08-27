@@ -28,6 +28,8 @@ type ObjectSchema struct {
 	unknown bool
 }
 
+var _ Schema = (*ObjectSchema)(nil)
+
 // --- methods ---
 
 func (s *ObjectSchema) Unknown(allow bool) *ObjectSchema {

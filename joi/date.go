@@ -27,6 +27,8 @@ type DateSchema struct {
 	*AnySchema[*DateSchema]
 }
 
+var _ Schema = (*DateSchema)(nil)
+
 // --- methods ---
 
 func (s *DateSchema) Min(limit time.Time, msg ...string) *DateSchema {

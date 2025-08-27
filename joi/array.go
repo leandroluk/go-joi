@@ -29,6 +29,8 @@ type ArraySchema struct {
 	itemsSchema Schema // schema dos itens (pode ser nil = aceita qualquer coisa)
 }
 
+var _ Schema = (*ArraySchema)(nil)
+
 // --- methods ---
 
 func (s *ArraySchema) Items(schema Schema) *ArraySchema {

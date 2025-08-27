@@ -40,6 +40,8 @@ type StringSchema struct {
 	*AnySchema[*StringSchema]
 }
 
+var _ Schema = (*StringSchema)(nil)
+
 // --- methods ---
 
 func (s *StringSchema) Min(limit int, msg ...string) *StringSchema {

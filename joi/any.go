@@ -34,6 +34,8 @@ type AnySchema[T any] struct {
 	self         T
 }
 
+var _ Schema = (*AnySchema[AnySchema[any]])(nil)
+
 // --- methods ---
 
 func (s *AnySchema[T]) Label(label string) *AnySchema[T] {
